@@ -1,0 +1,25 @@
+description: Ultralytics best model trained on C:\Users\user\Downloads\Actual QCar
+  Video.v3i.yolov8\data.yaml
+author: Ultralytics
+date: '2025-11-05T12:34:01.483300'
+version: 8.3.225
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: Qcar
+  1: green_light
+  2: pedestrian
+  3: red_light
+  4: stop_sign
+  5: yellow_light
+  6: yield_sign
+args:
+  batch: 1
+  half: false
+channels: 3

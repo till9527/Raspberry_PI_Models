@@ -1,0 +1,72 @@
+WARNING ⚠️ torchvision==0.24 is incompatible with torch==2.7.
+Run 'pip install torchvision==0.22' to fix torchvision or 'pip install -U torch torchvision' to update both.
+For a full compatibility table see https://github.com/pytorch/vision#installation
+Ultralytics 8.3.232 🚀 Python-3.11.14 torch-2.7.1 CPU (aarch64)
+WARNING ⚠️ IMX export requires int8=True, setting int8=True.
+WARNING ⚠️ IMX export requires nms=True, setting nms=True.
+WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. Using default 'data=coco8.yaml'.
+Model summary (fused): 72 layers, 3,007,013 parameters, 0 gradients
+
+PyTorch: starting from '/home/pi/Desktop/camera test program raspberry pi/model/best.pt' with input shape (1, 3, 640, 640) BCHW and output shape(s) ((1, 8400, 4), (1, 8400, 7)) (6.0 MB)
+IMX: collecting INT8 calibration images from 'data=coco8.yaml'
+
+WARNING ⚠️ Dataset 'coco8.yaml' images not found, missing path '/home/pi/Desktop/camera test program raspberry pi/datasets/coco8/images/val'
+Downloading https://ultralytics.com/assets/coco8.zip to '/home/pi/Desktop/camera test program raspberry pi/datasets/coco8.zip': 100% ━━━━━━━━━━━━ 432.8KB 4.4MB/s 0.1s
+Unzipping /home/pi/Desktop/camera test program raspberry pi/datasets/coco8.zip to /home/pi/Desktop/camera test program raspberry pi/datasets/coco8...: 100% ━━━━━━━━━━━━ 25/25 853.4files/s 0.0s
+Dataset download success ✅ (0.5s), saved to /home/pi/Desktop/camera test program raspberry pi/datasets
+
+Downloading https://ultralytics.com/assets/Arial.ttf to '/home/pi/.config/Ultralytics/Arial.ttf': 100% ━━━━━━━━━━━━ 755.1KB 5.4MB/s 0.1s 0.1s<0.0s
+Fast image access ✅ (ping: 0.0±0.0 ms, read: 272.0±89.8 MB/s, size: 54.0 KB)
+Scanning /home/pi/Desktop/camera test program raspberry pi/datasets/coco8/labels/val... 4 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 4/4 72.5it/s 0.1s
+New cache created: /home/pi/Desktop/camera test program raspberry pi/datasets/coco8/labels/val.cache
+WARNING ⚠️ IMX: >300 images recommended for INT8 calibration, found 4 images.
+
+IMX: starting export with model_compression_toolkit 2.4.4...
+representative_data_gen generates a batch size of 1 which can be slow for optimization: consider increasing the batch size
+WARNING:Model Compression Toolkit:OperatorSetNames.DEPTHWISE_CONV is not in model.
+Statistics Collection: 4it [00:44, 11.14s/it]
+Calculating quantization parameters: 100%|██████████| 194/194 [09:04<00:00,  2.81s/it]
+WARNING:Model Compression Toolkit:Not enough images in representative dataset to generate 10 data points, only 4 were generated
+8it [03:39, 27.05s/it]/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/similarity_analyzer.py:121: RuntimeWarning: overflow encountered in square
+  error = ((float_flat - fxp_flat) ** 2).mean(axis=-1)
+60it [26:42, 26.63s/it]/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/numpy/core/_methods.py:118: RuntimeWarning: overflow encountered in reduce
+  ret = umr_sum(arr, axis, dtype, out, keepdims, where=where)
+64it [28:29, 26.71s/it]
+WARNING:Model Compression Toolkit:The mixed precision distance metric values indicate a large error in the quantized model.this can cause numerical issues.The program will proceed with mixed precision search after scaling the metric values,which can lead to unstable results.
+/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/mixed_precision/mixed_precision_search_manager.py:335: RuntimeWarning: invalid value encountered in scalar divide
+  layer_to_metrics_mapping[layer][i] /= max_dist
+ERROR ❌ IMX: export failure 2368.5s: Cannot multiply variables with NaN/inf values
+Traceback (most recent call last):
+  File "/home/pi/Desktop/camera test program raspberry pi/ai_training.py", line 15, in <module>
+    model.export(format="imx")
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/ultralytics/engine/model.py", line 709, in export
+    return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/ultralytics/engine/exporter.py", line 557, in __call__
+    f[13] = self.export_imx()
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/ultralytics/engine/exporter.py", line 232, in outer_func
+    raise e
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/ultralytics/engine/exporter.py", line 224, in outer_func
+    f = inner_func(*args, **kwargs)  # exported file/dir or tuple of (file/dir, *)
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/ultralytics/engine/exporter.py", line 1199, in export_imx
+    return torch2imx(
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/ultralytics/utils/export/imx.py", line 253, in torch2imx
+    else mct.ptq.pytorch_post_training_quantization(  # Perform post training quantization
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/ptq/pytorch/quantization_facade.py", line 125, in pytorch_post_training_quantization
+    tg, bit_widths_config, _, scheduling_info = core_runner(in_model=in_module,
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/runner.py", line 127, in core_runner
+    bit_widths_config = search_bit_width(tg,
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/mixed_precision/mixed_precision_search_facade.py", line 101, in search_bit_width
+    nodes_bit_cfg = search_manager.search()
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/mixed_precision/mixed_precision_search_manager.py", line 105, in search
+    mp_config = self._prepare_and_run_solver()
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/mixed_precision/mixed_precision_search_manager.py", line 123, in _prepare_and_run_solver
+    mp_config = solver.run()
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/mixed_precision/search_methods/linear_programming.py", line 54, in run
+    lp_problem = self._formalize_problem()
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/model_compression_toolkit/core/common/mixed_precision/search_methods/linear_programming.py", line 113, in _formalize_problem
+    lp_problem += lpSum(list(np.multiply(layer_indicator_vars, layer_sensitivity))) == obj_var
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/pulp/pulp.py", line 218, in __mul__
+    return LpAffineExpression(self) * other
+  File "/home/pi/miniforge3/envs/ultralytics-env/lib/python3.11/site-packages/pulp/pulp.py", line 1031, in __mul__
+    raise const.PulpError("Cannot multiply variables with NaN/inf values")
+pulp.constants.PulpError: Cannot multiply variables with NaN/inf values
