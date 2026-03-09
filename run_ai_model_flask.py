@@ -10,6 +10,7 @@ from modlib.models.post_processors import pp_od_yolo_ultralytics
 # --- 1. SET UP THE WEB SERVER ---
 app = Flask(__name__)
 
+
 # --- 2. YOUR AI MODEL ---
 class YOLO(Model):
     def __init__(self):
@@ -28,6 +29,7 @@ class YOLO(Model):
     def post_process(self, output_tensors):
         return pp_od_yolo_ultralytics(output_tensors)
 
+
 # --- 3. THE VIDEO STREAM GENERATOR ---
 def generate_frames():
     device = AiCamera(image_size=(640, 480), frame_rate=16)
@@ -35,8 +37,10 @@ def generate_frames():
     device.deploy(model)
     annotator = Annotator()
 
-    LOWER_BOUND = np.array([10, 0, 0])
-    UPPER_BOUND = np.array([45, 255, 255])
+    LOWER_BOUND = np.array(
+        [20, 100, 100]
+    )  # H: Yellow, S: At least moderately colored, V: At least moderately bright
+    UPPER_BOUND = np.array([35, 255, 255])
 
     with device as stream:
         for frame in stream:
@@ -44,54 +48,81 @@ def generate_frames():
 
             # AI Annotation
             detections = frame.detections[frame.detections.confidence > 0.0]
-            labels = [f"{model.labels[class_id]}: {score:0.2f}" for _, score, class_id, _ in detections]
-            annotator.annotate_boxes(frame, detections, labels=labels, alpha=0.3, corner_radius=10)
-            
+            labels = [
+                f"{model.labels[class_id]}: {score:0.2f}"
+                for _, score, class_id, _ in detections
+            ]
+            annotator.annotate_boxes(
+                frame, detections, labels=labels, alpha=0.3, corner_radius=10
+            )
+
             # Thresholding
-            roi = clean_img[320:480, 0:640] 
-            hsv_img = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+            roi = clean_img[320:480, 0:640]
+
+            # A. Blur the image to smooth out grainy camera noise
+            blurred_roi = cv2.GaussianBlur(roi, (5, 5), 0)
+
+            # B. Convert to HSV
+            hsv_img = cv2.cvtColor(blurred_roi, cv2.COLOR_BGR2HSV)
+
+            # C. Create the binary mask using the tighter bounds
             binary_view = cv2.inRange(hsv_img, LOWER_BOUND, UPPER_BOUND)
-            
+
+            # D. Morphological Opening (Erases isolated white noise pixels)
+            # This creates a 5x5 pixel block. Any white spot smaller than this block gets deleted.
+            kernel = np.ones((5, 5), np.uint8)
+            binary_view = cv2.morphologyEx(binary_view, cv2.MORPH_OPEN, kernel)
+
+            # E. Morphological Closing (Fills in small black holes inside the yellow line)
+            binary_view = cv2.morphologyEx(binary_view, cv2.MORPH_CLOSE, kernel)
+
             # Convert binary image (1 channel) to BGR (3 channels) so we can stack it
             binary_3ch = cv2.cvtColor(binary_view, cv2.COLOR_GRAY2BGR)
-            
+
             # Stack images vertically (Main Feed on top, Threshold on bottom)
             combined_view = cv2.vconcat([frame.image, binary_3ch])
 
             # Compress to JPEG
-            ret, buffer = cv2.imencode('.jpg', combined_view)
+            ret, buffer = cv2.imencode(".jpg", combined_view)
             if not ret:
                 continue
             frame_bytes = buffer.tobytes()
 
             # Yield the frame to the web server
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+            )
+
 
 # --- 4. THE WEB ROUTE ---
-@app.route('/')
+@app.route("/")
 def video_feed():
     # This route tells the browser to expect a continuous stream of JPEGs
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        generate_frames(), mimetype="multipart/x-mixed-replace; boundary=frame"
+    )
+
 
 # --- 5. GET IP AND RUN ---
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(('10.255.255.255', 1))
+        s.connect(("10.255.255.255", 1))
         IP = s.getsockname()[0]
     except Exception:
-        IP = '127.0.0.1'
+        IP = "127.0.0.1"
     finally:
         s.close()
     return IP
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pi_ip = get_ip()
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("🚀 AI STREAM IS LIVE!")
     print(f"👉 Click here or paste this into your browser: http://{pi_ip}:5000")
-    print("="*50 + "\n")
-    
+    print("=" * 50 + "\n")
+
     # Run the server on port 5000
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run(host="0.0.0.0", port=5000, threaded=True)
